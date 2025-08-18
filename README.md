@@ -81,7 +81,7 @@ uv run src/word-to-markdown.py 'WORD-FILE-PATH'
 uv run src/word-to-markdown.py 'CONVERTED-MARKDOWN-FILE-PATH'
 ```
 
-### Excel, PDF, PowerPoint, Word, Textファイルの変換
+### Excel, PDF, PowerPoint, Word, Text, ソースコード(.c, .java, py, js, ts等)ファイルの変換
 
 ```bash
 # ディレクトリ内の全ファイルを変換

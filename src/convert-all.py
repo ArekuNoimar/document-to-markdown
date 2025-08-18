@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Batch document to Markdown converter using markitdown library
-Supports Excel, Word, PowerPoint, PDF, and text files
+Supports Excel, Word, PowerPoint, PDF, text files, and comprehensive programming language source code files
+Converts 50+ programming languages to Markdown with syntax highlighting
 """
 
 import argparse
@@ -12,7 +13,7 @@ from markitdown import MarkItDown
 
 def get_supported_extensions():
     """Return supported file extensions"""
-    return {
+    document_extensions = {
         '.xlsx': 'Excel',
         '.xls': 'Excel', 
         '.docx': 'Word',
@@ -22,6 +23,195 @@ def get_supported_extensions():
         '.pdf': 'PDF',
         '.txt': 'Text'
     }
+    
+    # Comprehensive programming language extensions
+    programming_extensions = {
+        '.abp': 'ABAP',
+        '.as': 'ActionScript',
+        '.asm': 'Assembly',
+        '.bat': 'Batch',
+        '.c': 'C',
+        '.cc': 'C++',
+        '.clj': 'Clojure',
+        '.coffee': 'CoffeeScript',
+        '.cpp': 'C++',
+        '.cs': 'C#',
+        '.css': 'CSS',
+        '.cxx': 'C++',
+        '.d': 'D',
+        '.dart': 'Dart',
+        '.erl': 'Erlang',
+        '.forth': 'Forth',
+        '.go': 'Go',
+        '.groovy': 'Groovy',
+        '.h': 'C/C++ Header',
+        '.hpp': 'C++ Header',
+        '.hs': 'Haskell',
+        '.htm': 'HTML',
+        '.html': 'HTML',
+        '.hx': 'Haxe',
+        '.ipynb': 'Jupyter Notebook',
+        '.java': 'Java',
+        '.js': 'JavaScript',
+        '.jsx': 'JSX',
+        '.kt': 'Kotlin',
+        '.kts': 'Kotlin Script',
+        '.lhs': 'Literate Haskell',
+        '.lisp': 'Lisp',
+        '.lsl': 'LSL',
+        '.lua': 'Lua',
+        '.m': 'MATLAB/Objective-C',
+        '.mat': 'MATLAB',
+        '.mjs': 'JavaScript Module',
+        '.ml': 'OCaml',
+        '.pas': 'Pascal',
+        '.php': 'PHP',
+        '.pl': 'Perl',
+        '.pm': 'Perl Module',
+        '.pro': 'Prolog',
+        '.ps1': 'PowerShell',
+        '.py': 'Python',
+        '.pyc': 'Python Compiled',
+        '.pyo': 'Python Optimized',
+        '.r': 'R',
+        '.rb': 'Ruby',
+        '.rs': 'Rust',
+        '.scala': 'Scala',
+        '.scm': 'Scheme',
+        '.sh': 'Shell Script',
+        '.sql': 'SQL',
+        '.swift': 'Swift',
+        '.swi': 'SWI-Prolog',
+        '.ts': 'TypeScript',
+        '.v': 'Verilog',
+        '.vbs': 'VBScript',
+        '.xhtml': 'XHTML',
+        '.xml': 'XML',
+        '.xquery': 'XQuery'
+    }
+    
+    # Combine document and programming extensions
+    all_extensions = {**document_extensions, **programming_extensions}
+    return all_extensions
+
+
+def get_source_code_extensions():
+    """Return source code file extensions"""
+    return {
+        '.abp', '.as', '.asm', '.bat', '.c', '.cc', '.clj', '.coffee', '.cpp', 
+        '.cs', '.css', '.cxx', '.d', '.dart', '.erl', '.forth', '.go', '.groovy',
+        '.h', '.hpp', '.hs', '.htm', '.html', '.hx', '.ipynb', '.java', '.js', 
+        '.jsx', '.kt', '.kts', '.lhs', '.lisp', '.lsl', '.lua', '.m', '.mat',
+        '.mjs', '.ml', '.pas', '.php', '.pl', '.pm', '.pro', '.ps1', '.py', 
+        '.pyc', '.pyo', '.r', '.rb', '.rs', '.scala', '.scm', '.sh', '.sql',
+        '.swift', '.swi', '.ts', '.v', '.vbs', '.xhtml', '.xml', '.xquery'
+    }
+
+
+def convert_source_code_to_markdown(input_file_path: str, output_dir: str):
+    """
+    Convert a source code file to Markdown format with code block formatting
+    
+    Args:
+        input_file_path: Path to the source code file
+        output_dir: Directory to save the converted markdown file
+    
+    Returns:
+        bool: True if conversion was successful, False otherwise
+    """
+    try:
+        input_path = Path(input_file_path)
+        
+        # Read the source code content
+        with open(input_file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Determine language for syntax highlighting
+        extension = input_path.suffix.lower()
+        language_map = {
+            '.abp': 'abap',
+            '.as': 'actionscript',
+            '.asm': 'assembly',
+            '.bat': 'batch',
+            '.c': 'c',
+            '.cc': 'cpp',
+            '.clj': 'clojure',
+            '.coffee': 'coffeescript',
+            '.cpp': 'cpp',
+            '.cs': 'csharp',
+            '.css': 'css',
+            '.cxx': 'cpp',
+            '.d': 'd',
+            '.dart': 'dart',
+            '.erl': 'erlang',
+            '.forth': 'forth',
+            '.go': 'go',
+            '.groovy': 'groovy',
+            '.h': 'c',
+            '.hpp': 'cpp',
+            '.hs': 'haskell',
+            '.htm': 'html',
+            '.html': 'html',
+            '.hx': 'haxe',
+            '.ipynb': 'json',
+            '.java': 'java',
+            '.js': 'javascript',
+            '.jsx': 'jsx',
+            '.kt': 'kotlin',
+            '.kts': 'kotlin',
+            '.lhs': 'haskell',
+            '.lisp': 'lisp',
+            '.lsl': 'lsl',
+            '.lua': 'lua',
+            '.m': 'matlab',
+            '.mat': 'matlab',
+            '.mjs': 'javascript',
+            '.ml': 'ocaml',
+            '.pas': 'pascal',
+            '.php': 'php',
+            '.pl': 'perl',
+            '.pm': 'perl',
+            '.pro': 'prolog',
+            '.ps1': 'powershell',
+            '.py': 'python',
+            '.pyc': 'python',
+            '.pyo': 'python',
+            '.r': 'r',
+            '.rb': 'ruby',
+            '.rs': 'rust',
+            '.scala': 'scala',
+            '.scm': 'scheme',
+            '.sh': 'bash',
+            '.sql': 'sql',
+            '.swift': 'swift',
+            '.swi': 'prolog',
+            '.ts': 'typescript',
+            '.v': 'verilog',
+            '.vbs': 'vbscript',
+            '.xhtml': 'xml',
+            '.xml': 'xml',
+            '.xquery': 'xquery'
+        }
+        
+        language = language_map.get(extension, '')
+        
+        # Create markdown content with code block
+        markdown_content = f"# {input_path.name}\n\n```{language}\n{content}\n```\n"
+        
+        # Generate output filename
+        output_filename = f"{input_path.stem}.md"
+        output_file_path = Path(output_dir) / output_filename
+        
+        # Write to file
+        with open(output_file_path, 'w', encoding='utf-8') as f:
+            f.write(markdown_content)
+        
+        print(f" Converted: {input_file_path} � {output_file_path}")
+        return True
+        
+    except Exception as e:
+        print(f"L Error converting {input_file_path}: {e}")
+        return False
 
 
 def convert_file_to_markdown(input_file_path: str, output_dir: str):
@@ -36,14 +226,20 @@ def convert_file_to_markdown(input_file_path: str, output_dir: str):
         bool: True if conversion was successful, False otherwise
     """
     try:
-        # Initialize MarkItDown
+        input_path = Path(input_file_path)
+        source_code_extensions = get_source_code_extensions()
+        
+        # Check if this is a source code file
+        if input_path.suffix.lower() in source_code_extensions:
+            return convert_source_code_to_markdown(input_file_path, output_dir)
+        
+        # Use MarkItDown for other file types
         md = MarkItDown()
         
         # Convert the file
         result = md.convert(input_file_path)
         
         # Generate output filename
-        input_path = Path(input_file_path)
         output_filename = f"{input_path.stem}.md"
         output_file_path = Path(output_dir) / output_filename
         
@@ -145,7 +341,7 @@ def process_single_file(file_path: str, output_dir: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert documents (Excel, Word, PowerPoint, PDF, Text) to Markdown",
+        description="Convert documents and source code (50+ programming languages) to Markdown",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

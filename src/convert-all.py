@@ -7,6 +7,7 @@ Converts 50+ programming languages to Markdown with syntax highlighting
 
 import argparse
 import sys
+import threading
 from pathlib import Path
 from markitdown import MarkItDown
 from tqdm import tqdm
@@ -254,20 +255,42 @@ def convert_file_to_markdown(input_file_path: str, output_dir: str):
         return False
 
 
-def process_directory(directory_path: str, output_dir: str):
+def process_files_chunk(files_chunk, output_dir, supported_extensions, results_dict, thread_id):
+    """
+    Process a chunk of files in a separate thread
+    
+    Args:
+        files_chunk: List of file paths to process
+        output_dir: Directory to save converted markdown files
+        supported_extensions: Dictionary of supported extensions
+        results_dict: Dictionary to store results (thread-safe)
+        thread_id: ID of the current thread
+    """
+    local_success = 0
+    local_total = len(files_chunk)
+    
+    for file_path in tqdm(files_chunk, desc=f"Thread-{thread_id}", unit="file", position=thread_id):
+        file_type = supported_extensions[file_path.suffix.lower()]
+        
+        if convert_file_to_markdown(str(file_path), output_dir):
+            local_success += 1
+    
+    results_dict[thread_id] = (local_success, local_total)
+
+
+def process_directory(directory_path: str, output_dir: str, num_threads: int = 1):
     """
     Process all supported files in a directory
     
     Args:
         directory_path: Path to the directory containing files
         output_dir: Directory to save converted markdown files
+        num_threads: Number of threads to use for parallel processing
     
     Returns:
         tuple: (success_count, total_count)
     """
     supported_extensions = get_supported_extensions()
-    success_count = 0
-    total_count = 0
     
     directory = Path(directory_path)
     
@@ -292,15 +315,62 @@ def process_directory(directory_path: str, output_dir: str):
     
     print(f"📁 Found {len(supported_files)} supported files in: {directory_path}")
     
-    # Process each file with progress bar
-    for file_path in tqdm(supported_files, desc="Converting files", unit="file"):
-        total_count += 1
-        file_type = supported_extensions[file_path.suffix.lower()]
+    # If only one thread, process sequentially
+    if num_threads <= 1:
+        success_count = 0
+        total_count = 0
         
-        if convert_file_to_markdown(str(file_path), output_dir):
-            success_count += 1
+        for file_path in tqdm(supported_files, desc="Converting files", unit="file"):
+            total_count += 1
+            file_type = supported_extensions[file_path.suffix.lower()]
+            
+            if convert_file_to_markdown(str(file_path), output_dir):
+                success_count += 1
+        
+        return success_count, total_count
     
-    return success_count, total_count
+    # Calculate chunk size for each thread
+    total_files = len(supported_files)
+    chunk_size = total_files // num_threads
+    remainder = total_files % num_threads
+    
+    # Divide files among threads
+    file_chunks = []
+    start_idx = 0
+    
+    for i in range(num_threads):
+        # Add one extra file to some threads to handle remainder
+        current_chunk_size = chunk_size + (1 if i < remainder else 0)
+        end_idx = start_idx + current_chunk_size
+        
+        if start_idx < total_files:
+            file_chunks.append(supported_files[start_idx:end_idx])
+            start_idx = end_idx
+    
+    # Process files in parallel
+    threads = []
+    results_dict = {}
+    
+    print(f"🚀 Using {len(file_chunks)} threads for parallel processing")
+    
+    for i, chunk in enumerate(file_chunks):
+        if chunk:  # Only create thread if chunk is not empty
+            thread = threading.Thread(
+                target=process_files_chunk,
+                args=(chunk, output_dir, supported_extensions, results_dict, i)
+            )
+            threads.append(thread)
+            thread.start()
+    
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+    
+    # Calculate total results
+    total_success = sum(success for success, _ in results_dict.values())
+    total_count = sum(count for _, count in results_dict.values())
+    
+    return total_success, total_count
 
 
 def process_single_file(file_path: str, output_dir: str):
@@ -351,6 +421,9 @@ Examples:
   
   # Specify custom output directory
   python convert-all.py --directorypath src/media --output custom-output
+  
+  # Use parallel processing with 4 threads
+  python convert-all.py --directorypath src/media --subthread 4
         """
     )
     
@@ -374,6 +447,13 @@ Examples:
         help='Output directory for converted markdown files (default: converted-markdown)'
     )
     
+    parser.add_argument(
+        '--subthread',
+        type=int,
+        default=1,
+        help='Number of parallel threads for processing files (default: 1)'
+    )
+    
     args = parser.parse_args()
     
     # Create output directory
@@ -388,7 +468,7 @@ Examples:
     
     if args.directorypath:
         # Process directory
-        success_count, total_count = process_directory(args.directorypath, str(output_dir))
+        success_count, total_count = process_directory(args.directorypath, str(output_dir), args.subthread)
         
         print()
         print("=" * 50)

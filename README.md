@@ -11,7 +11,7 @@ document-to-markdown/
 ├── src
 │   ├── media
 │   │   └── sample-multilingual-text.pdf   # サンプルPDF
-│   ├── convert-all.py                      # Excel, PDF, PowerPoint, Word, Text変換用
+│   ├── convert-all.py                      # Excel, PDF, PowerPoint, Word, Text, ソースコード変換用（並列処理対応）
 │   ├── excel-to-markdown.py                # Excel変換用
 │   ├── pdf-to-markdown.py                  # PDF変換用
 │   ├── powerpoint-to-markdown.py           # PowerPoint変換用
@@ -93,6 +93,9 @@ uv run src/convert-all.py --filepath src/media/document.pdf
 
 # カスタム出力ディレクトリ指定
 uv run src/convert-all.py --directorypath src/media --output custom-output
+
+# 並列処理で高速化（4つのスレッドで処理）
+uv run src/convert-all.py --directorypath src/media --subthread 4
 ```
 
 ### 基本的な使用方法

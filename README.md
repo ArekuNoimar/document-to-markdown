@@ -30,13 +30,13 @@ tqdm>=4.67.1
 # ディレクトリ移動
 cd document-to-markdown
 
-# 仮想環境作成
+# python 3.12.3の仮想環境を作成する
 uv venv --python 3.12.3
 
-# 仮想環境有効化
+# 仮想環境の有効化
 source .venv/bin/activate
 
-# ライブラリインストール
+# 環境同期
 uv sync
 ```
 

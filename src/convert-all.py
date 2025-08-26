@@ -9,6 +9,7 @@ import argparse
 import sys
 from pathlib import Path
 from markitdown import MarkItDown
+from tqdm import tqdm
 
 
 def get_supported_extensions():
@@ -206,11 +207,10 @@ def convert_source_code_to_markdown(input_file_path: str, output_dir: str):
         with open(output_file_path, 'w', encoding='utf-8') as f:
             f.write(markdown_content)
         
-        print(f" Converted: {input_file_path} � {output_file_path}")
         return True
         
     except Exception as e:
-        print(f"L Error converting {input_file_path}: {e}")
+        print(f"✗ Error converting {input_file_path}: {e}")
         return False
 
 
@@ -247,11 +247,10 @@ def convert_file_to_markdown(input_file_path: str, output_dir: str):
         with open(output_file_path, 'w', encoding='utf-8') as f:
             f.write(result.text_content)
         
-        print(f" Converted: {input_file_path} � {output_file_path}")
         return True
         
     except Exception as e:
-        print(f"L Error converting {input_file_path}: {e}")
+        print(f"✗ Error converting {input_file_path}: {e}")
         return False
 
 
@@ -273,11 +272,11 @@ def process_directory(directory_path: str, output_dir: str):
     directory = Path(directory_path)
     
     if not directory.exists():
-        print(f"L Directory not found: {directory_path}")
+        print(f"✗ Directory not found: {directory_path}")
         return 0, 0
     
     if not directory.is_dir():
-        print(f"L Path is not a directory: {directory_path}")
+        print(f"✗ Path is not a directory: {directory_path}")
         return 0, 0
     
     # Find all supported files
@@ -287,17 +286,16 @@ def process_directory(directory_path: str, output_dir: str):
             supported_files.append(file_path)
     
     if not supported_files:
-        print(f"�  No supported files found in: {directory_path}")
+        print(f"ⓘ No supported files found in: {directory_path}")
         print(f"Supported extensions: {', '.join(supported_extensions.keys())}")
         return 0, 0
     
-    print(f"=� Found {len(supported_files)} supported files in: {directory_path}")
+    print(f"📁 Found {len(supported_files)} supported files in: {directory_path}")
     
-    # Process each file
-    for file_path in supported_files:
+    # Process each file with progress bar
+    for file_path in tqdm(supported_files, desc="Converting files", unit="file"):
         total_count += 1
         file_type = supported_extensions[file_path.suffix.lower()]
-        print(f"= Processing {file_type} file: {file_path}")
         
         if convert_file_to_markdown(str(file_path), output_dir):
             success_count += 1
@@ -321,20 +319,20 @@ def process_single_file(file_path: str, output_dir: str):
     file = Path(file_path)
     
     if not file.exists():
-        print(f"L File not found: {file_path}")
+        print(f"✗ File not found: {file_path}")
         return False
     
     if not file.is_file():
-        print(f"L Path is not a file: {file_path}")
+        print(f"✗ Path is not a file: {file_path}")
         return False
     
     if file.suffix.lower() not in supported_extensions:
-        print(f"L Unsupported file type: {file.suffix}")
+        print(f"✗ Unsupported file type: {file.suffix}")
         print(f"Supported extensions: {', '.join(supported_extensions.keys())}")
         return False
     
     file_type = supported_extensions[file.suffix.lower()]
-    print(f"= Processing {file_type} file: {file_path}")
+    print(f"🔄 Processing {file_type} file: {file_path}")
     
     return convert_file_to_markdown(file_path, output_dir)
 
@@ -381,11 +379,11 @@ Examples:
     # Create output directory
     output_dir = Path(args.output)
     output_dir.mkdir(exist_ok=True)
-    print(f"=� Output directory: {output_dir.absolute()}")
+    print(f"📂 Output directory: {output_dir.absolute()}")
     
     # Display supported file types
     supported_extensions = get_supported_extensions()
-    print(f"=' Supported file types: {', '.join(f'{ext} ({ftype})' for ext, ftype in supported_extensions.items())}")
+    print(f"📄 Supported file types: {', '.join(f'{ext} ({ftype})' for ext, ftype in supported_extensions.items())}")
     print()
     
     if args.directorypath:
@@ -394,7 +392,7 @@ Examples:
         
         print()
         print("=" * 50)
-        print(f"=� Conversion Summary:")
+        print(f"📊 Conversion Summary:")
         print(f"   Total files processed: {total_count}")
         print(f"   Successful conversions: {success_count}")
         print(f"   Failed conversions: {total_count - success_count}")
@@ -412,10 +410,10 @@ Examples:
         print()
         print("=" * 50)
         if success:
-            print(" File conversion completed successfully!")
+            print("✓ File conversion completed successfully!")
             sys.exit(0)
         else:
-            print("L File conversion failed!")
+            print("✗ File conversion failed!")
             sys.exit(1)
 
 

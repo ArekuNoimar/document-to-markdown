@@ -21,7 +21,8 @@ document-to-markdown/
 
 ## 利用ライブラリ
 
-markitdown[all]==0.1.2
+markitdown[all]==0.1.2  
+tqdm>=4.67.1  
 
 ## セットアップ
 

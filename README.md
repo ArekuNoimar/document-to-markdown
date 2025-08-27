@@ -1,4 +1,6 @@
-# このリポジトリについて
+# Document to Markdown
+
+## 概要
 
 このリポジトリはExcel, PowerPoint, PDF, textのような多種多様な文書をマークダウンに変換する、[markitdown](https://github.com/microsoft/markitdown) の実験用リポジトリです
 
